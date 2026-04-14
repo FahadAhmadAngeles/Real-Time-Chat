@@ -9,39 +9,69 @@
     <input id="username" placeholder="Enter username">
     <br><br>
 
-    <textarea id="chat-log" cols="50" rows="20" readonly></textarea><br>
+    <textarea id="chat-log" cols="50" rows="20" readonly>
+{% for msg in messages %}
+{{ msg.username }} [{{ msg.timestamp|time:"H:i:s" }}]: {{ msg.content }}
+{% endfor %}
+</textarea><br>
 
     <input id="message-input" type="text" placeholder="Type message">
     <button onclick="sendMessage()">Send</button>
 
 <script>
-let socket = new WebSocket("ws://" + window.location.host + "/ws/chat/");
+let socket = new WebSocket(
+    "ws://" + window.location.host + "/ws/chat/"
+);
 
+// ✅ CONNECTION DEBUG (VERY IMPORTANT)
+socket.onopen = function() {
+    console.log("WebSocket CONNECTED");
+};
+
+socket.onerror = function(e) {
+    console.log("WebSocket ERROR:", e);
+};
+
+socket.onclose = function() {
+    console.log("WebSocket CLOSED");
+};
+
+// ✅ RECEIVE MESSAGE
 socket.onmessage = function(e) {
     let data = JSON.parse(e.data);
+
     let time = new Date().toLocaleTimeString();
 
     let chatLog = document.getElementById("chat-log");
-    chatLog.value += data.username + " [" + time + "]: " + data.message + "\n";
-    chatLog.scrollTop = chatLog.scrollHeight;  // auto-scroll
+
+    chatLog.value += `${data.username} [${time}]: ${data.message}\n`;
+
+    chatLog.scrollTop = chatLog.scrollHeight;
 };
 
+// ✅ SEND MESSAGE
 function sendMessage() {
     let message = document.getElementById("message-input").value;
     let username = document.getElementById("username").value.trim();
 
     if (!username) {
-        alert("Please enter a username!");
-        return;
-    }
-    if (!message) {
-        alert("Cannot send empty message!");
+        alert("Enter username");
         return;
     }
 
+    if (!message) return;
+
+    // ❗ CHECK CONNECTION STATE
+    if (socket.readyState !== WebSocket.OPEN) {
+        alert("Socket not connected!");
+        return;
+    }
+
+    console.log("Sending:", message);
+
     socket.send(JSON.stringify({
-        'message': message,
-        'username': username
+        message: message,
+        username: username
     }));
 
     document.getElementById("message-input").value = "";
