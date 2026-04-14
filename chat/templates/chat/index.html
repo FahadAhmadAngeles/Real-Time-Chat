@@ -1,22 +1,31 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
     <title>Real-Time Chat</title>
+    <link rel="stylesheet" href="{% static 'chat/styles.css' %}">
 </head>
 <body>
-    <h2>Real-Time Chat</h2>
+    <main class="chat-page">
+        <section class="chat-card">
+            <h2>Real-Time Chat</h2>
 
-    <input id="username" placeholder="Enter username">
-    <br><br>
+            <div class="form-row">
+                <input id="username" placeholder="Enter username">
+            </div>
 
-    <textarea id="chat-log" cols="50" rows="20" readonly>
+            <textarea id="chat-log" cols="50" rows="20" readonly>
 {% for msg in messages %}
 {{ msg.username }} [{{ msg.timestamp|time:"H:i:s" }}]: {{ msg.content }}
 {% endfor %}
-</textarea><br>
+</textarea>
 
-    <input id="message-input" type="text" placeholder="Type message">
-    <button onclick="sendMessage()">Send</button>
+            <div class="composer">
+                <input id="message-input" type="text" placeholder="Type message">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </section>
+    </main>
 
 <script>
 let socket = new WebSocket(
