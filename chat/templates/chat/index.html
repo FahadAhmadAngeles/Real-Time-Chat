@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Chat</title>
+</head>
+<body>
+    <h2>Real-Time Chat</h2>
+
+    <input id="username" placeholder="Enter username">
+    <br><br>
+
+    <textarea id="chat-log" cols="50" rows="20" readonly></textarea><br>
+
+    <input id="message-input" type="text" placeholder="Type message">
+    <button onclick="sendMessage()">Send</button>
+
+<script>
+let socket = new WebSocket("ws://" + window.location.host + "/ws/chat/");
+
+socket.onmessage = function(e) {
+    let data = JSON.parse(e.data);
+    let time = new Date().toLocaleTimeString();
+
+    let chatLog = document.getElementById("chat-log");
+    chatLog.value += data.username + " [" + time + "]: " + data.message + "\n";
+    chatLog.scrollTop = chatLog.scrollHeight;  // auto-scroll
+};
+
+function sendMessage() {
+    let message = document.getElementById("message-input").value;
+    let username = document.getElementById("username").value.trim();
+
+    if (!username) {
+        alert("Please enter a username!");
+        return;
+    }
+    if (!message) {
+        alert("Cannot send empty message!");
+        return;
+    }
+
+    socket.send(JSON.stringify({
+        'message': message,
+        'username': username
+    }));
+
+    document.getElementById("message-input").value = "";
+}
+</script>
+
+</body>
+</html>
