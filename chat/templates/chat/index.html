@@ -44,11 +44,9 @@ socket.onclose = function() {
 socket.onmessage = function(e) {
     let data = JSON.parse(e.data);
 
-    let time = new Date().toLocaleTimeString();
-
     let chatLog = document.getElementById("chat-log");
 
-    chatLog.value += `${data.username} [${time}]: ${data.message}\n`;
+    chatLog.value += `${data.username} [${data.timestamp}]: ${data.message}\n`;
 
     chatLog.scrollTop = chatLog.scrollHeight;
 };

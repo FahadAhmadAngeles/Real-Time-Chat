@@ -28,26 +28,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data["message"]
         username = data["username"]
 
-        #  SAVE TO DATABASE 
-        await self.save_message(username, message)
+        # SAVE + GET OBJECT
+        msg_obj = await self.save_message(username, message)
 
-        #  BROADCAST TO ALL USERS
+        # BROADCAST WITH TIMESTAMP
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "chat_message",
-                "message": message,
-                "username": username
+                "message": msg_obj.content,
+                "username": msg_obj.username,
+                "timestamp": msg_obj.timestamp.strftime("%I:%M:%S %p")
             }
         )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             "message": event["message"],
-            "username": event["username"]
+            "username": event["username"],
+            "timestamp": event["timestamp"]
         }))
 
-    # ✅ helper function for DB write
     @database_sync_to_async
     def save_message(self, username, message):
         return Message.objects.create(
